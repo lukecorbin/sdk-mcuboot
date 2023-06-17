@@ -52,8 +52,7 @@
 
 const struct boot_uart_funcs boot_funcs = {
     .read = console_read,
-    .write = console_write
-};
+    .write = console_write};
 #endif
 
 #ifdef CONFIG_BOOT_SERIAL_BOOT_MODE
@@ -112,11 +111,17 @@ K_SEM_DEFINE(boot_log_sem, 1, 1);
 #endif /* CONFIG_LOG_PROCESS_THREAD */
 #else
 /* synchronous log mode doesn't need to be initalized by the application */
-#define ZEPHYR_BOOT_LOG_START() do { } while (false)
-#define ZEPHYR_BOOT_LOG_STOP() do { } while (false)
+#define ZEPHYR_BOOT_LOG_START() \
+    do                          \
+    {                           \
+    } while (false)
+#define ZEPHYR_BOOT_LOG_STOP() \
+    do                         \
+    {                          \
+    } while (false)
 #endif /* defined(CONFIG_LOG) && !defined(ZEPHYR_LOG_MODE_IMMEDIATE) && \
-        * !defined(ZEPHYR_LOG_MODE_MINIMAL)
-	*/
+        * !defined(ZEPHYR_LOG_MODE_MINIMAL)                             \
+        */
 
 #if USE_PARTITION_MANAGER && CONFIG_FPROTECT
 #include <fprotect.h>
@@ -147,9 +152,9 @@ BOOT_LOG_MODULE_REGISTER(mcuboot);
 
 /* Validate serial recovery configuration */
 #ifdef CONFIG_MCUBOOT_SERIAL
-#if !defined(CONFIG_BOOT_SERIAL_ENTRANCE_GPIO) && \
-    !defined(CONFIG_BOOT_SERIAL_WAIT_FOR_DFU) && \
-    !defined(CONFIG_BOOT_SERIAL_BOOT_MODE) && \
+#if !defined(CONFIG_BOOT_SERIAL_ENTRANCE_GPIO) &&  \
+    !defined(CONFIG_BOOT_SERIAL_WAIT_FOR_DFU) &&   \
+    !defined(CONFIG_BOOT_SERIAL_BOOT_MODE) &&      \
     !defined(CONFIG_BOOT_SERIAL_NO_APPLICATION) && \
     !defined(CONFIG_BOOT_SERIAL_PIN_RESET)
 #error "Serial recovery selected without an entrance mode set"
@@ -178,7 +183,8 @@ static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 void led_init(void)
 {
-    if (!device_is_ready(led0.port)) {
+    if (!device_is_ready(led0.port))
+    {
         BOOT_LOG_ERR("Didn't find LED device referred by the LED0_NODE\n");
         return;
     }
@@ -196,7 +202,8 @@ void os_heap_init(void);
 extern void *_vector_table_pointer;
 #endif
 
-struct arm_vector_table {
+struct arm_vector_table
+{
     uint32_t msp;
     uint32_t reset;
 };
@@ -226,7 +233,8 @@ static void do_boot(struct boot_rsp *rsp)
                                      rsp->br_hdr->ih_hdr_size);
 #endif
 
-    if (IS_ENABLED(CONFIG_SYSTEM_TIMER_HAS_DISABLE_SUPPORT)) {
+    if (IS_ENABLED(CONFIG_SYSTEM_TIMER_HAS_DISABLE_SUPPORT))
+    {
         sys_clock_disable();
     }
 
@@ -240,7 +248,8 @@ static void do_boot(struct boot_rsp *rsp)
 
 #ifdef PM_S0_ADDRESS
     /* Only fail if the immutable bootloader is present. */
-    if (!provided) {
+    if (!provided)
+    {
         BOOT_LOG_ERR("Failed to provide EXT_APIs\n");
         return;
     }
@@ -287,7 +296,7 @@ static void do_boot(struct boot_rsp *rsp)
 #elif defined(CONFIG_CPU_CORTEX_M_HAS_VTOR)
     SCB->VTOR = (uint32_t)vt;
 #endif /* CONFIG_SW_VECTOR_RELAY */
-#else /* CONFIG_BOOT_INTR_VEC_RELOC */
+#else  /* CONFIG_BOOT_INTR_VEC_RELOC */
 #if defined(CONFIG_CPU_CORTEX_M_HAS_VTOR) && defined(CONFIG_SW_VECTOR_RELAY)
     _vector_table_pointer = _vector_start;
     SCB->VTOR = (uint32_t)__vector_relay_table;
@@ -303,7 +312,7 @@ static void do_boot(struct boot_rsp *rsp)
 }
 
 #elif defined(CONFIG_XTENSA)
-#define SRAM_BASE_ADDRESS	0xBE030000
+#define SRAM_BASE_ADDRESS 0xBE030000
 
 static void copy_img_to_SRAM(int slot, unsigned int hdr_offset)
 {
@@ -316,13 +325,15 @@ static void copy_img_to_SRAM(int slot, unsigned int hdr_offset)
 
     area_id = flash_area_id_from_image_slot(slot);
     rc = flash_area_open(area_id, &fap);
-    if (rc != 0) {
+    if (rc != 0)
+    {
         BOOT_LOG_ERR("flash_area_open failed with %d\n", rc);
         goto done;
     }
 
     rc = flash_area_read(fap, hdr_offset, dst, fap->fa_size - hdr_offset);
-    if (rc != 0) {
+    if (rc != 0)
+    {
         BOOT_LOG_ERR("flash_area_read failed with %d\n", rc);
         goto done;
     }
@@ -395,14 +406,18 @@ void boot_log_thread_func(void *dummy1, void *dummy2, void *dummy3)
 
     log_init();
 
-    while (1) {
+    while (1)
+    {
 #if defined(CONFIG_LOG1) || defined(CONFIG_LOG2)
         /* support Zephyr legacy logging implementation before commit c5f2cde */
-        if (log_process(false) == false) {
+        if (log_process(false) == false)
+        {
 #else
-        if (log_process() == false) {
+        if (log_process() == false)
+        {
 #endif
-            if (boot_log_stop) {
+            if (boot_log_stop)
+            {
                 break;
             }
             k_sleep(BOOT_LOG_PROCESSING_INTERVAL);
@@ -435,9 +450,121 @@ void zephyr_boot_log_stop(void)
      */
     (void)k_sem_take(&boot_log_sem, K_FOREVER);
 }
-#endif /* defined(CONFIG_LOG) && !defined(ZEPHYR_LOG_MODE_IMMEDIATE) && \
-        * !defined(CONFIG_LOG_PROCESS_THREAD) && !defined(ZEPHYR_LOG_MODE_MINIMAL)
+#endif /* defined(CONFIG_LOG) && !defined(ZEPHYR_LOG_MODE_IMMEDIATE) &&            \
+        * !defined(CONFIG_LOG_PROCESS_THREAD) && !defined(ZEPHYR_LOG_MODE_MINIMAL) \
         */
+
+#if defined(CONFIG_SIG_GOLDEN_RECOVERY_BUTTON)
+
+#define GOLDBTN0_NODE DT_ALIAS(goldenbtn_button0)
+
+#if DT_NODE_EXISTS(GOLDBTN0_NODE) && DT_NODE_HAS_PROP(GOLDBTN0_NODE, gpios)
+static const struct gpio_dt_spec gold_button0 = GPIO_DT_SPEC_GET(GOLDBTN0_NODE, gpios);
+#else
+#error "Golden Recovery button0 must be declared in device tree as 'mcuboot_button0'"
+#endif
+
+#if defined(CONFIG_SIG_GOLDEN_RECOVERY_BUTTON_USE_BTN1)
+
+#define GOLDBTN1_NODE DT_ALIAS(goldenbtn_button1)
+
+#if DT_NODE_EXISTS(GOLDBTN1_NODE) && DT_NODE_HAS_PROP(GOLDBTN1_NODE, gpios)
+static const struct gpio_dt_spec gold_button1 = GPIO_DT_SPEC_GET(GOLDBTN1_NODE, gpios);
+#else
+#error "Golden Recovery button1 must be declared in device tree as 'mcuboot_button0'"
+#endif
+
+#endif
+
+#define GOLDEN_BUTTON_DETECT_DELAY CONFIG_SIG_GOLDEN_RECOVERY_BUTTON_DELAY
+
+static bool detect_golden_pin(void)
+{
+    int rc0, rc1;
+    int pin_active;
+
+    if (!device_is_ready(gold_button0.port))
+    {
+        __ASSERT(false, "GPIO device is not ready.\n");
+        return false;
+    }
+
+    rc0 = gpio_pin_configure_dt(&gold_button0, GPIO_INPUT);
+    __ASSERT(rc == 0, "Failed to initialize boot detect pin.\n");
+
+    rc0 = gpio_pin_get_dt(&gold_button0);
+    pin_active = rc0;
+
+    __ASSERT(rc >= 0, "Failed to read boot detect pin.\n");
+
+#ifdef GOLDBTN1_NODE
+
+    if (!device_is_ready(gold_button1.port))
+    {
+        __ASSERT(false, "GPIO device is not ready.\n");
+        return false;
+    }
+
+    rc1 = gpio_pin_configure_dt(&gold_button1, GPIO_INPUT);
+    __ASSERT(rc == 0, "Failed to initialize boot detect pin.\n");
+
+    rc1 = gpio_pin_get_dt(&gold_button1);
+    pin_active = rc0 & rc1;
+
+    __ASSERT(rc >= 0, "Failed to read boot detect pin.\n");
+
+#endif
+
+    if (pin_active)
+    {
+        if (GOLDEN_BUTTON_DETECT_DELAY > 0)
+        {
+#ifdef CONFIG_MULTITHREADING
+            k_sleep(K_MSEC(50));
+#else
+            k_busy_wait(50000);
+#endif
+
+            /* Get the uptime for debounce purposes. */
+            int64_t timestamp = k_uptime_get();
+
+            for (;;)
+            {
+                rc0 = gpio_pin_get_dt(&gold_button0);
+#ifdef GOLDBTN1_NODE
+                rc1 = gpio_pin_get_dt(&gold_button1);
+                pin_active = rc0 & rc1;
+#else
+                pin_active = rc;
+#endif
+
+                __ASSERT(rc >= 0, "Failed to read boot detect pin.\n");
+
+                /* Get delta from when this started */
+                uint32_t delta = k_uptime_get() - timestamp;
+
+                /* If not pressed OR if pressed > debounce period, stop. */
+                if (delta >= GOLDEN_BUTTON_DETECT_DELAY || !pin_active)
+                {
+                    printk("\r\n");
+                    break;
+                }
+
+                /* Delay 1 ms */
+#ifdef CONFIG_MULTITHREADING
+                k_sleep(K_MSEC(250));
+#else
+                k_busy_wait(250 * 1000);
+#endif
+                printk(".");
+            }
+        }
+    }
+
+    return (bool)pin_active;
+}
+
+#endif
 
 #if defined(CONFIG_BOOT_SERIAL_ENTRANCE_GPIO) || defined(CONFIG_BOOT_USB_DFU_GPIO)
 
@@ -460,7 +587,8 @@ static bool detect_pin(void)
     int rc;
     int pin_active;
 
-    if (!device_is_ready(button0.port)) {
+    if (!device_is_ready(button0.port))
+    {
         __ASSERT(false, "GPIO device is not ready.\n");
         return false;
     }
@@ -473,8 +601,10 @@ static bool detect_pin(void)
 
     __ASSERT(rc >= 0, "Failed to read boot detect pin.\n");
 
-    if (pin_active) {
-        if (BUTTON_0_DETECT_DELAY > 0) {
+    if (pin_active)
+    {
+        if (BUTTON_0_DETECT_DELAY > 0)
+        {
 #ifdef CONFIG_MULTITHREADING
             k_sleep(K_MSEC(50));
 #else
@@ -484,16 +614,18 @@ static bool detect_pin(void)
             /* Get the uptime for debounce purposes. */
             int64_t timestamp = k_uptime_get();
 
-            for(;;) {
+            for (;;)
+            {
                 rc = gpio_pin_get_dt(&button0);
                 pin_active = rc;
                 __ASSERT(rc >= 0, "Failed to read boot detect pin.\n");
 
                 /* Get delta from when this started */
-                uint32_t delta = k_uptime_get() -  timestamp;
+                uint32_t delta = k_uptime_get() - timestamp;
 
                 /* If not pressed OR if pressed > debounce period, stop. */
-                if (delta >= BUTTON_0_DETECT_DELAY || !pin_active) {
+                if (delta >= BUTTON_0_DETECT_DELAY || !pin_active)
+                {
                     break;
                 }
 
@@ -565,9 +697,20 @@ void main(void)
 
     mcuboot_status_change(MCUBOOT_STATUS_STARTUP);
 
+#ifdef CONFIG_SIG_GOLDEN_RECOVERY_BUTTON
+    BOOT_LOG_INF("Sig Golden Image Recover Button Enabled.");
+
+    if (detect_golden_pin())
+    {
+        BOOT_LOG_WRN("Sig Golden Image Recovery STARTED");
+    }
+
+#endif
+
 #ifdef CONFIG_BOOT_SERIAL_ENTRANCE_GPIO
     if (detect_pin() &&
-            !boot_skip_serial_recovery()) {
+        !boot_skip_serial_recovery())
+    {
         boot_serial_enter();
     }
 #endif
@@ -575,14 +718,16 @@ void main(void)
 #ifdef CONFIG_BOOT_SERIAL_PIN_RESET
     rc = hwinfo_get_reset_cause(&reset_cause);
 
-    if (rc == 0 && reset_cause == RESET_PIN) {
+    if (rc == 0 && reset_cause == RESET_PIN)
+    {
         (void)hwinfo_clear_reset_cause();
         boot_serial_enter();
     }
 #endif
 
 #if defined(CONFIG_BOOT_USB_DFU_GPIO)
-    if (detect_pin()) {
+    if (detect_pin())
+    {
 #ifdef CONFIG_MCUBOOT_INDICATION_LED
         gpio_pin_set_dt(&led0, 1);
 #endif
@@ -590,9 +735,12 @@ void main(void)
         mcuboot_status_change(MCUBOOT_STATUS_USB_DFU_ENTERED);
 
         rc = usb_enable(NULL);
-        if (rc) {
+        if (rc)
+        {
             BOOT_LOG_ERR("Cannot enable USB");
-        } else {
+        }
+        else
+        {
             BOOT_LOG_INF("Waiting for USB DFU");
             wait_for_usb_dfu(K_FOREVER);
             BOOT_LOG_INF("USB DFU wait time elapsed");
@@ -600,9 +748,12 @@ void main(void)
     }
 #elif defined(CONFIG_BOOT_USB_DFU_WAIT)
     rc = usb_enable(NULL);
-    if (rc) {
+    if (rc)
+    {
         BOOT_LOG_ERR("Cannot enable USB");
-    } else {
+    }
+    else
+    {
         BOOT_LOG_INF("Waiting for USB DFU");
 
         mcuboot_status_change(MCUBOOT_STATUS_USB_DFU_WAITING);
@@ -630,7 +781,8 @@ void main(void)
 #ifdef CONFIG_BOOT_SERIAL_BOOT_MODE
     boot_mode = bootmode_check(BOOT_MODE_TYPE_BOOTLOADER);
 
-    if (boot_mode == 1) {
+    if (boot_mode == 1)
+    {
         /* Boot mode to stay in bootloader, clear status and enter serial
          * recovery mode
          */
@@ -641,14 +793,16 @@ void main(void)
 
 #ifdef CONFIG_BOOT_SERIAL_WAIT_FOR_DFU
     timeout_in_ms -= (k_uptime_get_32() - start);
-    if( timeout_in_ms <= 0 ) {
+    if (timeout_in_ms <= 0)
+    {
         /* at least one check if time was expired */
         timeout_in_ms = 1;
     }
-    boot_serial_check_start(&boot_funcs,timeout_in_ms);
+    boot_serial_check_start(&boot_funcs, timeout_in_ms);
 #endif
 
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS))
+    {
         BOOT_LOG_ERR("Unable to find bootable image");
 
         mcuboot_status_change(MCUBOOT_STATUS_NO_BOOTABLE_IMAGE_FOUND);
@@ -688,7 +842,8 @@ void main(void)
 
     rc = fprotect_area(PROTECT_ADDR, PROTECT_SIZE);
 
-    if (rc != 0) {
+    if (rc != 0)
+    {
         BOOT_LOG_ERR("Protect mcuboot flash failed, cancel startup.");
         while (1)
             ;

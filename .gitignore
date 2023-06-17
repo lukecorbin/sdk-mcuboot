@@ -28,3 +28,5 @@ rusty-tags.*
 
 # The target directory from Rust development
 /target/
+
+.DS_Store

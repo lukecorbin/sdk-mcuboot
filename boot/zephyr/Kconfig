@@ -447,6 +447,27 @@ config BOOT_USB_DFU_WAIT_DELAY_MS
 	help
 	  Milliseconds to wait for USB DFU to be invoked.
 
+config SIG_GOLDEN_RECOVERY_BUTTON
+	bool "Golden image recovery button enable."
+	default n
+	help
+	  Use this to enable golden image recover on button combo 
+
+config SIG_GOLDEN_RECOVERY_BUTTON_USE_BTN1
+	bool "Golden image recovery enable second button"
+	default n
+	help
+	  Use this to enable btn1 along with btn0
+
+config SIG_GOLDEN_RECOVERY_BUTTON_DELAY
+	int "Golden image recovery button delay ms."
+	depends on SIG_GOLDEN_RECOVERY_BUTTON
+	default 5000
+	help
+	  Use this to set the golden image recoery 
+
+#CONFIG_BOOT_USB_DFU_DETECT_DELAY
+
 if BOOT_USB_DFU_GPIO
 
 config BOOT_USB_DFU_DETECT_DELAY
